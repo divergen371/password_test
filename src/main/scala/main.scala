@@ -2,17 +2,24 @@ import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.server.Directives.*
 import org.apache.pekko.http.scaladsl.server.directives.DebuggingDirectives
+import org.apache.pekko.http.scaladsl.server.directives.LoggingMagnet
 import route.UserRoutes
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 @main def run(): Unit =
-  given ActorSystem[Nothing] = ActorSystem(org.apache.pekko.actor.typed.scaladsl.Behaviors.empty, "api-system")
+  given system: ActorSystem[Nothing] = ActorSystem(org.apache.pekko.actor.typed.scaladsl.Behaviors.empty, "api-system")
 
   given ExecutionContextExecutor = summon[ActorSystem[Nothing]].executionContext
 
-  val loggedRoutes = DebuggingDirectives.logRequestResult("debug-api")(UserRoutes.routes)
+  // より詳細なログ設定
+  val loggedRoutes = logRequest("Request") {
+    logResult("Response") {
+      UserRoutes.routes
+    }
+  }
+  
   val binding = Http().newServerAt("0.0.0.0", 8080).bind(loggedRoutes)
   println("Server started at http://localhost:8080/")
   
