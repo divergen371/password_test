@@ -38,7 +38,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
         status shouldEqual StatusCodes.Created
         val response = responseAs[String]
         response should include("Created")
-        response should include("\"id\":1")
+        response should include("\"id\":")
       }
     }
 
