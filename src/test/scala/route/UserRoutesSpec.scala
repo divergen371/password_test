@@ -3,6 +3,7 @@ package route
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.http.scaladsl.marshalling.Marshal
 import org.apache.pekko.http.scaladsl.model.*
+import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -12,10 +13,10 @@ import spray.json.*
 class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
 
   // テスト用のActorSystem
-  lazy val testKit = ActorTestKit()
+  lazy val testKit: ActorTestKit = ActorTestKit()
   
   // UserRoutesのインスタンスを取得
-  val userRoutes = UserRoutes.routes
+  val userRoutes: Route = UserRoutes.routes
 
   override def cleanUp(): Unit = {
     testKit.shutdownTestKit()
