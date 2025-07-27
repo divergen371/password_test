@@ -151,4 +151,11 @@ object UserRoutes extends DefaultJsonProtocol {
     users.values.find(_.name == cred.name) match
       case Some(u) if u.role == "admin" && PasswordUtil.verify(cred.password, u.password, u.salt) => inner
       case _ => complete(StatusCodes.Forbidden, ApiResponse[String](false, message=Some("Admin privileges required")))
+
+  /**
+   * ***TEST ONLY***: テスト間で状態が汚染しないようにリセットするヘルパ。
+   */
+  def resetData(): Unit =
+    users.clear()
+    seqId = 0
 }

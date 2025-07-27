@@ -8,9 +8,10 @@ import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfterEach
 import spray.json.*
 
-class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
+class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest with BeforeAndAfterEach {
 
   // テスト用のActorSystem
   lazy val testKit: ActorTestKit = ActorTestKit()
@@ -20,6 +21,11 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
 
   override def cleanUp(): Unit = {
     testKit.shutdownTestKit()
+  }
+
+  override protected def beforeEach(): Unit = {
+    route.UserRoutes.resetData()
+    super.beforeEach()
   }
 
   "UserRoutes" should {

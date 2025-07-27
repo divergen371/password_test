@@ -4,6 +4,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.BeforeAndAfterEach
+import route.UserRoutes
 
 /**
   * 共通テストヘルパ。
@@ -19,3 +21,10 @@ trait PropertySpec
     with Matchers
     with ScalaFutures
     with ScalaCheckPropertyChecks
+    with BeforeAndAfterEach {
+
+  /** 各テスト前に in-memory データをリセット */
+  override protected def beforeEach(): Unit =
+    UserRoutes.resetData()
+    super.beforeEach()
+}
