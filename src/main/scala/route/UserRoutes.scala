@@ -12,6 +12,9 @@ import org.apache.pekko.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 
 import scala.collection.mutable
 
+import common.{ApiResponse, ExceptionHandlers, SecurityHeaders}
+import common.JsonSupport.given
+
 object UserRoutes extends DefaultJsonProtocol {
 
   // ------------ case classes (public) ------------
@@ -23,8 +26,6 @@ object UserRoutes extends DefaultJsonProtocol {
 
   case class PwChange(name: String, oldPassword: String, newPassword: String, confirm: String)
 
-  case class ApiResponse[T](success: Boolean, data: Option[T] = None, message: Option[String] = None)
-
   // ------------ JSON フォーマット ---------------
   given RootJsonFormat[Cred]    = jsonFormat3(Cred.apply)
   given RootJsonFormat[Created] = jsonFormat2(Created.apply)
@@ -32,36 +33,10 @@ object UserRoutes extends DefaultJsonProtocol {
   given RootJsonFormat[User]    = jsonFormat5(User.apply)
   given RootJsonFormat[PwChange]= jsonFormat4(PwChange.apply)
 
-  import spray.json.DefaultJsonProtocol.*
-  given apiResponseFormat[T](using fmt: JsonFormat[T]): RootJsonFormat[ApiResponse[T]] = new RootJsonFormat[ApiResponse[T]] {
-    override def write(obj: ApiResponse[T]): JsValue = JsObject(
-      "success" -> JsBoolean(obj.success),
-      "data"    -> obj.data.map(fmt.write).getOrElse(JsNull),
-      "message" -> obj.message.map(JsString.apply).getOrElse(JsNull)
-    )
-
-    override def read(json: JsValue): ApiResponse[T] = json.asJsObject.getFields("success", "data", "message") match
-      case Seq(JsBoolean(s), d, m) =>
-        ApiResponse(s, if d == JsNull then None else Some(fmt.read(d)), m match
-          case JsString(str) => Some(str)
-          case _ => None)
-      case _ => deserializationError("ApiResponse expected")
-  }
-
-  // RootJsonFormat[String] が存在しないため補完
-  given RootJsonFormat[String] = new RootJsonFormat[String] {
-    def write(str: String): JsValue = JsString(str)
-    def read(value: JsValue): String = value match
-      case JsString(s) => s
-      case _           => deserializationError("String expected")
-  }
-
-  // ApiResponse marshaller to HTTP response
-  given apiRespRespMarshaller[T](using RootJsonFormat[ApiResponse[T]]): ToResponseMarshaller[ApiResponse[T]] =
-    sprayJsonMarshaller[ApiResponse[T]]
+  // String フォーマットは JsonSupport で提供済み
 
   // ------------ ルーティング --------------------
-  val routes: Route =
+  private val innerRoutes: Route =
     pathPrefix("api" / "v1") {
       path("test") {
         get {
@@ -154,6 +129,9 @@ object UserRoutes extends DefaultJsonProtocol {
         }
       }
     }
+
+  // 例外ハンドラ & セキュリティヘッダーを適用した公開ルート
+  val routes: Route = ExceptionHandlers.wrap(SecurityHeaders(innerRoutes))
 
   // ------------ データ保存 ----------------------
   private val users = mutable.Map.empty[Int, User]
