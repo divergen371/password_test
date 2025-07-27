@@ -2,6 +2,7 @@ package util
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import domain._
 
 class PasswordUtilSpec extends AnyWordSpec with Matchers {
 
@@ -45,15 +46,15 @@ class PasswordUtilSpec extends AnyWordSpec with Matchers {
     }
 
     "validate password length" in {
-      PasswordUtil.validate("short") shouldBe Some("Password too short (>=8)")
-      PasswordUtil.validate("1234567") shouldBe Some("Password too short (>=8)")
-      PasswordUtil.validate("12345678") shouldBe None
-      PasswordUtil.validate("validpassword123") shouldBe None
+      PasswordUtil.validate("short") shouldBe Left(PasswordTooShort)
+      PasswordUtil.validate("1234567") shouldBe Left(PasswordTooShort)
+      PasswordUtil.validate("12345678") shouldBe Right(())
+      PasswordUtil.validate("validpassword123") shouldBe Right(())
     }
 
     "handle edge cases" in {
-      PasswordUtil.validate("") shouldBe Some("Password too short (>=8)")
-      PasswordUtil.validate("exactly8") shouldBe None
+      PasswordUtil.validate("") shouldBe Left(PasswordTooShort)
+      PasswordUtil.validate("exactly8") shouldBe Right(())
       
       // 空文字列のハッシュ化
       val emptyHash = PasswordUtil.hashPassword("")

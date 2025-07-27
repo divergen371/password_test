@@ -52,6 +52,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
   "POST /api/v1/users/hash" should {
     "accept any 8-32 character alphanum password" in
       forAll(userName, validPassword) { (name, pass) =>
+        UserRoutes.resetData()
         val json   = s"""{"name":"$name","password":"$pass"}"""
         val entity = HttpEntity(ContentTypes.`application/json`, json)
 
@@ -62,6 +63,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
 
     "reject passwords shorter than 8 characters" in
       forAll(userName, shortPassword) { (name, pass) =>
+        UserRoutes.resetData()
         val json   = s"""{"name":"$name","password":"$pass"}"""
         val entity = HttpEntity(ContentTypes.`application/json`, json)
 
@@ -72,6 +74,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
 
     "reject duplicate user creation" in
       forAll(userName, validPassword) { (name, pass) =>
+        UserRoutes.resetData()
         val json   = s"""{"name":"$name","password":"$pass"}"""
         val entity = HttpEntity(ContentTypes.`application/json`, json)
 
@@ -90,6 +93,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
   "POST /api/v1/login" should {
     "succeed with the exact credentials that were used at creation" in
       forAll(userName, validPassword) { (name, pass) =>
+        UserRoutes.resetData()
         val createJson   = s"""{"name":"$name","password":"$pass"}"""
         val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
         Post("/api/v1/users/hash", createEntity) ~> routes ~> check {
@@ -104,6 +108,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
 
     "always fail with unknown user or wrong password" in
       forAll(userName, validPassword) { (name, pass) =>
+        UserRoutes.resetData()
         val loginJson   = s"""{"name":"$name","password":"$pass"}"""
         val loginEntity = HttpEntity(ContentTypes.`application/json`, loginJson)
 
@@ -116,6 +121,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
   "POST /api/v1/users/change_password" should {
     "allow a user to change password then login with the new one" in
       forAll(userName, newPassword) { (name, pwPair) =>
+        UserRoutes.resetData()
         val (oldPw, newPw) = pwPair
         // ユーザ作成
         val createJson   = s"""{"name":"$name","password":"$oldPw"}"""
@@ -141,6 +147,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
 
     "reject when confirm does not match" in
       forAll(userName, validPassword, validPassword.suchThat(_ != "")) { (name, oldPw, otherPw) =>
+        UserRoutes.resetData()
         // enforce mismatch
         whenever(otherPw != oldPw) {
           val createJson   = s"""{"name":"$name","password":"$oldPw"}"""

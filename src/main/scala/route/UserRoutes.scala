@@ -7,6 +7,7 @@ import org.apache.pekko.http.scaladsl.server.{Directives, Route}
 import Directives.*
 import spray.json.*
 import util.PasswordUtil
+import domain.*
 import org.apache.pekko.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
 import org.apache.pekko.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 
@@ -58,8 +59,8 @@ object UserRoutes extends DefaultJsonProtocol {
           path("hash") {
             entity(as[Cred]) { cred =>
               PasswordUtil.validate(cred.password) match
-                case Some(err) => complete(StatusCodes.BadRequest, ApiResponse[String](success=false,message=Some(err)))
-                case None =>
+                case Left(err) => complete(StatusCodes.BadRequest, ApiResponse[String](success=false,message=Some(err.message)))
+                case Right(_) =>
                   whenUniqueUser(cred.name) {
                     seqId += 1
                     val hashed = PasswordUtil.hashPassword(cred.password)
@@ -71,8 +72,8 @@ object UserRoutes extends DefaultJsonProtocol {
           path("salt_hash") {
             entity(as[Cred]) { cred =>
               PasswordUtil.validate(cred.password) match
-                case Some(err) => complete(StatusCodes.BadRequest, ApiResponse[String](success=false,message=Some(err)))
-                case None =>
+                case Left(err) => complete(StatusCodes.BadRequest, ApiResponse[String](success=false,message=Some(err.message)))
+                case Right(_) =>
                   whenUniqueUser(cred.name) {
                     seqId += 1
                     val (hashed, salt) = PasswordUtil.hashPasswordWithSalt(cred.password)
@@ -88,8 +89,8 @@ object UserRoutes extends DefaultJsonProtocol {
                   if req.newPassword != req.confirm then
                     complete(StatusCodes.BadRequest, ApiResponse[String](false, message=Some("Password confirm mismatch")))
                   else PasswordUtil.validate(req.newPassword) match
-                    case Some(err) => complete(StatusCodes.BadRequest, ApiResponse[String](success=false,message=Some(err)))
-                    case None =>
+                    case Left(err) => complete(StatusCodes.BadRequest, ApiResponse[String](success=false,message=Some(err.message)))
+                    case Right(_) =>
                       if req.newPassword == req.oldPassword then
                         complete(StatusCodes.BadRequest, ApiResponse[String](false, message=Some("New password must differ from old")))
                       else

@@ -2,6 +2,7 @@ package util
 
 import java.security.{MessageDigest, SecureRandom}
 import java.util.Base64
+import domain.*
 
 object PasswordUtil {
   private val random = new SecureRandom()
@@ -26,10 +27,9 @@ object PasswordUtil {
     }
 
   /**
-    * パスワード強度チェックに失敗した場合はエラーメッセージを返す。
-    * 成功したら None。
+    * パスワード強度チェック。要件を満たせば Right(()), 満たさなければ Left(DomainError)
     */
-  def validate(password: String): Option[String] =
-    if password.length < 8 then Some("Password too short (>=8)")
-    else None
+  def validate(password: String): Either[DomainError, Unit] =
+    if password.length < 8 then Left(PasswordTooShort) else Right(())
+
 }
