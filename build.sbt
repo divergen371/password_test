@@ -18,6 +18,9 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-http-spray-json" % PekkoHttpVer,
   "org.apache.pekko" %% "pekko-slf4j" % PekkoVersion,
   "ch.qos.logback" % "logback-classic" % "1.5.18",
+  "org.typelevel" %% "cats-core"   % "2.13.0",
+  "org.typelevel" %% "cats-effect" % "3.6.3",
+
   
   // Test dependencies
   "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVer % Test,
