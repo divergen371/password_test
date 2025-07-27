@@ -25,6 +25,21 @@ final class InMemoryUserRepo private (state: Ref[IO, InMemoryUserRepo.State]) ex
       }
     }
 
+  /** salt を伴うパスワード生成 */
+  def createWithSalt(name: String, password: String, role: String): EitherT[IO, DomainError, Int] =
+    EitherT {
+      state.modify { st =>
+        if st.users.values.exists(_.name == name) then
+          (st, Left(UserAlreadyExists))
+        else
+          val id                = st.nextId
+          val (hashed, salt)    = PasswordUtil.hashPasswordWithSalt(password)
+          val newUser           = UserRecord(id, name, hashed, Some(salt), role)
+          val newState          = st.copy(nextId = id + 1, users = st.users + (id -> newUser))
+          (newState, Right(id))
+      }
+    }
+
   def findByName(name: String): EitherT[IO, DomainError, Option[UserRecord]] =
     EitherT.liftF {
       state.get.map(_.users.values.find(_.name == name))

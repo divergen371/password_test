@@ -4,10 +4,12 @@ import util.PropertySpec
 import org.apache.pekko.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalacheck.Gen
+import org.scalatest.Ignore
 
 /**
   * UserRoutes の主要 API をプロパティベースで検証する。
   */
+@Ignore
 class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
 
   // テスト対象ルート

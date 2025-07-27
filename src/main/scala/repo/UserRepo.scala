@@ -8,6 +8,7 @@ import util.PasswordUtil
 /** ユーザ永続化層の抽象 */
 trait UserRepo[F[_]] {
   def create(name: String, password: String, role: String = "user"): EitherT[F, DomainError, Int]
+  def createWithSalt(name: String, password: String, role: String = "user"): EitherT[F, DomainError, Int]
   def findByName(name: String): EitherT[F, DomainError, Option[UserRecord]]
   def updatePassword(name: String, hash: String, salt: Option[String]): EitherT[F, DomainError, Unit]
   def list(): F[List[UserRecord]]

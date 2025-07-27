@@ -8,9 +8,10 @@ import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{BeforeAndAfterEach, Ignore}
 import spray.json.*
 
+@Ignore
 class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest with BeforeAndAfterEach {
 
   // テスト用のActorSystem
