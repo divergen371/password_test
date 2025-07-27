@@ -14,13 +14,13 @@ object JsonSupport extends DefaultJsonProtocol {
 
   // --------------------- ApiResponse -------------------
   given apiResponseFormat[T](using fmt: JsonFormat[T]): RootJsonFormat[ApiResponse[T]] = new RootJsonFormat[ApiResponse[T]] {
-    override def write(obj: ApiResponse[T]) = JsObject(
+    override def write(obj: ApiResponse[T]): JsObject = JsObject(
       "success" -> JsBoolean(obj.success),
       "data"    -> obj.data.map(fmt.write).getOrElse(JsNull),
       "message" -> obj.message.map(JsString.apply).getOrElse(JsNull)
     )
 
-    override def read(json: spray.json.JsValue) = json.asJsObject.getFields("success", "data", "message") match
+    override def read(json: spray.json.JsValue): ApiResponse[T] = json.asJsObject.getFields("success", "data", "message") match
       case Seq(spray.json.JsBoolean(s), d, m) =>
         ApiResponse(s,
           if d == JsNull then None else Some(fmt.read(d)),
