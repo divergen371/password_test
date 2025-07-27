@@ -24,8 +24,8 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
 
   "UserRoutes" should {
 
-    "return test message for GET /test" in {
-      Get("/test") ~> userRoutes ~> check {
+    "return test message for GET /api/v1/test" in {
+      Get("/api/v1/test") ~> userRoutes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[String] shouldEqual "Test route works!"
       }
@@ -35,7 +35,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val userJson = """{"name":"testuser","password":"testpass123"}"""
       val entity = HttpEntity(ContentTypes.`application/json`, userJson)
 
-      Post("/users/hash", entity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", entity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
         val response = responseAs[String]
         response should include("Created")
@@ -47,7 +47,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val userJson = """{"name":"testuser2","password":"short"}"""
       val entity = HttpEntity(ContentTypes.`application/json`, userJson)
 
-      Post("/users/hash", entity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", entity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.BadRequest
         val response = responseAs[String]
         response should include("Password too short")
@@ -59,12 +59,12 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val entity = HttpEntity(ContentTypes.`application/json`, userJson)
 
       // 最初のユーザー作成
-      Post("/users/hash", entity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", entity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
       // 重複ユーザー作成を試行
-      Post("/users/hash", entity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", entity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Conflict
         val response = responseAs[String]
         response should include("User already exists")
@@ -75,7 +75,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val userJson = """{"name":"saltuser","password":"saltpass123"}"""
       val entity = HttpEntity(ContentTypes.`application/json`, userJson)
 
-      Post("/users/salt_hash", entity) ~> userRoutes ~> check {
+      Post("/api/v1/users/salt_hash", entity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
         val response = responseAs[String]
         response should include("Created")
@@ -87,7 +87,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
 
       // ユーザー作成
-      Post("/users/hash", createEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", createEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
@@ -95,7 +95,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val loginJson = """{"name":"loginuser","password":"loginpass123"}"""
       val loginEntity = HttpEntity(ContentTypes.`application/json`, loginJson)
 
-      Post("/login", loginEntity) ~> userRoutes ~> check {
+      Post("/api/v1/login", loginEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.OK
         val response = responseAs[String]
         response should include("Login Success")
@@ -106,7 +106,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val loginJson = """{"name":"nonexistent","password":"wrongpass"}"""
       val entity = HttpEntity(ContentTypes.`application/json`, loginJson)
 
-      Post("/login", entity) ~> userRoutes ~> check {
+      Post("/api/v1/login", entity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Unauthorized
         val response = responseAs[String]
         response should include("Login Failed")
@@ -118,7 +118,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
 
       // ユーザー作成
-      Post("/users/hash", createEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", createEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
@@ -126,7 +126,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val changeJson = """{"name":"changeuser","oldPassword":"oldpass123","newPassword":"newpass456","confirm":"newpass456"}"""
       val changeEntity = HttpEntity(ContentTypes.`application/json`, changeJson)
 
-      Post("/users/change_password", changeEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/change_password", changeEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.OK
         val response = responseAs[String]
         response should include("Password changed")
@@ -136,7 +136,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val loginJson = """{"name":"changeuser","password":"newpass456"}"""
       val loginEntity = HttpEntity(ContentTypes.`application/json`, loginJson)
 
-      Post("/login", loginEntity) ~> userRoutes ~> check {
+      Post("/api/v1/login", loginEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.OK
         val response = responseAs[String]
         response should include("Login Success")
@@ -147,14 +147,14 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val createJson = """{"name":"mismatchuser","password":"oldpass123"}"""
       val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
 
-      Post("/users/hash", createEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", createEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
       val changeJson = """{"name":"mismatchuser","oldPassword":"oldpass123","newPassword":"newpass456","confirm":"different456"}"""
       val changeEntity = HttpEntity(ContentTypes.`application/json`, changeJson)
 
-      Post("/users/change_password", changeEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/change_password", changeEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.BadRequest
         val response = responseAs[String]
         response should include("Password confirm mismatch")
@@ -166,7 +166,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val adminJson = """{"name":"admin","password":"adminpass123","role":"admin"}"""
       val adminEntity = HttpEntity(ContentTypes.`application/json`, adminJson)
 
-      Post("/users/hash", adminEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", adminEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
@@ -174,7 +174,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val userJson = """{"name":"normaluser","password":"userpass123"}"""
       val userEntity = HttpEntity(ContentTypes.`application/json`, userJson)
 
-      Post("/users/hash", userEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", userEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
@@ -182,7 +182,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val listJson = """{"name":"admin","password":"adminpass123"}"""
       val listEntity = HttpEntity(ContentTypes.`application/json`, listJson)
 
-      Post("/admin/users", listEntity) ~> userRoutes ~> check {
+      Post("/api/v1/admin/users", listEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.OK
         val response = responseAs[String]
         response should include("admin")
@@ -194,14 +194,14 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val userJson = """{"name":"regularuser","password":"userpass123"}"""
       val userEntity = HttpEntity(ContentTypes.`application/json`, userJson)
 
-      Post("/users/hash", userEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", userEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
       val listJson = """{"name":"regularuser","password":"userpass123"}"""
       val listEntity = HttpEntity(ContentTypes.`application/json`, listJson)
 
-      Post("/admin/users", listEntity) ~> userRoutes ~> check {
+      Post("/api/v1/admin/users", listEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Forbidden
         val response = responseAs[String]
         response should include("Admin privileges required")
@@ -213,7 +213,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val adminJson = """{"name":"admin2","password":"adminpass123","role":"admin"}"""
       val adminEntity = HttpEntity(ContentTypes.`application/json`, adminJson)
 
-      Post("/users/hash", adminEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", adminEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
       }
 
@@ -221,7 +221,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
       val targetJson = """{"name":"deleteuser","password":"userpass123"}"""
       val targetEntity = HttpEntity(ContentTypes.`application/json`, targetJson)
 
-      Post("/users/hash", targetEntity) ~> userRoutes ~> check {
+      Post("/api/v1/users/hash", targetEntity) ~> userRoutes ~> check {
         status shouldEqual StatusCodes.Created
         val response = responseAs[String]
         val userId = response.substring(response.indexOf("\"id\":") + 5, response.indexOf(","))
@@ -230,7 +230,7 @@ class UserRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with Sc
         val deleteJson = """{"name":"admin2","password":"adminpass123"}"""
         val deleteEntity = HttpEntity(ContentTypes.`application/json`, deleteJson)
 
-        Post(s"/admin/delete/$userId", deleteEntity) ~> userRoutes ~> check {
+        Delete(s"/api/v1/admin/users/$userId", deleteEntity) ~> userRoutes ~> check {
           status shouldEqual StatusCodes.OK
           val deleteResponse = responseAs[String]
           deleteResponse should include(s"User $userId deleted")

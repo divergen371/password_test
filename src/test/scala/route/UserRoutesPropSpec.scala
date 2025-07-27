@@ -28,6 +28,10 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
       str <- Gen.listOfN(n, Gen.alphaNumChar)
     } yield str.mkString
 
+  // shrink 時に制御文字を生成しないように上書き
+  import org.scalacheck.Shrink
+  given Shrink[String] = Shrink.shrinkAny
+
   /** 7 文字以下 (無効) パスワード */
   private val shortPassword: Gen[String] =
     for {
@@ -45,13 +49,13 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
 
   // プロパティ -----------------------------------------------------
 
-  "POST /users/hash" should {
+  "POST /api/v1/users/hash" should {
     "accept any 8-32 character alphanum password" in
       forAll(userName, validPassword) { (name, pass) =>
         val json   = s"""{"name":"$name","password":"$pass"}"""
         val entity = HttpEntity(ContentTypes.`application/json`, json)
 
-        Post("/users/hash", entity) ~> routes ~> check {
+        Post("/api/v1/users/hash", entity) ~> routes ~> check {
           status shouldBe StatusCodes.Created
         }
       }
@@ -61,7 +65,7 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
         val json   = s"""{"name":"$name","password":"$pass"}"""
         val entity = HttpEntity(ContentTypes.`application/json`, json)
 
-        Post("/users/hash", entity) ~> routes ~> check {
+        Post("/api/v1/users/hash", entity) ~> routes ~> check {
           status shouldBe StatusCodes.BadRequest
         }
       }
@@ -72,28 +76,28 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
         val entity = HttpEntity(ContentTypes.`application/json`, json)
 
         // 1回目: 作成成功
-        Post("/users/hash", entity) ~> routes ~> check {
+        Post("/api/v1/users/hash", entity) ~> routes ~> check {
           status shouldBe StatusCodes.Created
         }
 
         // 2回目: 同じデータで衝突
-        Post("/users/hash", entity) ~> routes ~> check {
+        Post("/api/v1/users/hash", entity) ~> routes ~> check {
           status shouldBe StatusCodes.Conflict
         }
       }
   }
 
-  "POST /login" should {
+  "POST /api/v1/login" should {
     "succeed with the exact credentials that were used at creation" in
       forAll(userName, validPassword) { (name, pass) =>
         val createJson   = s"""{"name":"$name","password":"$pass"}"""
         val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
-        Post("/users/hash", createEntity) ~> routes ~> check {
+        Post("/api/v1/users/hash", createEntity) ~> routes ~> check {
           status shouldBe StatusCodes.Created
         }
 
         val loginEntity = HttpEntity(ContentTypes.`application/json`, createJson)
-        Post("/login", loginEntity) ~> routes ~> check {
+        Post("/api/v1/login", loginEntity) ~> routes ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -103,34 +107,34 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
         val loginJson   = s"""{"name":"$name","password":"$pass"}"""
         val loginEntity = HttpEntity(ContentTypes.`application/json`, loginJson)
 
-        Post("/login", loginEntity) ~> routes ~> check {
+        Post("/api/v1/login", loginEntity) ~> routes ~> check {
           status shouldBe StatusCodes.Unauthorized
         }
       }
   }
 
-  "POST /users/change_password" should {
+  "POST /api/v1/users/change_password" should {
     "allow a user to change password then login with the new one" in
       forAll(userName, newPassword) { (name, pwPair) =>
         val (oldPw, newPw) = pwPair
         // ユーザ作成
         val createJson   = s"""{"name":"$name","password":"$oldPw"}"""
         val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
-        Post("/users/hash", createEntity) ~> routes ~> check {
+        Post("/api/v1/users/hash", createEntity) ~> routes ~> check {
           status shouldBe StatusCodes.Created
         }
 
         // パスワード変更
         val changeJson = s"""{"name":"$name","oldPassword":"$oldPw","newPassword":"$newPw","confirm":"$newPw"}"""
         val changeEntity = HttpEntity(ContentTypes.`application/json`, changeJson)
-        Post("/users/change_password", changeEntity) ~> routes ~> check {
+        Post("/api/v1/users/change_password", changeEntity) ~> routes ~> check {
           status shouldBe StatusCodes.OK
         }
 
         // 新PW でログイン
         val loginJson   = s"""{"name":"$name","password":"$newPw"}"""
         val loginEntity = HttpEntity(ContentTypes.`application/json`, loginJson)
-        Post("/login", loginEntity) ~> routes ~> check {
+        Post("/api/v1/login", loginEntity) ~> routes ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -141,11 +145,11 @@ class UserRoutesPropSpec extends PropertySpec with ScalatestRouteTest {
         whenever(otherPw != oldPw) {
           val createJson   = s"""{"name":"$name","password":"$oldPw"}"""
           val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
-          Post("/users/hash", createEntity) ~> routes ~> check { status shouldBe StatusCodes.Created }
+          Post("/api/v1/users/hash", createEntity) ~> routes ~> check { status shouldBe StatusCodes.Created }
 
           val changeJson   = s"""{"name":"$name","oldPassword":"$oldPw","newPassword":"$otherPw","confirm":"mismatch"}"""
           val changeEntity = HttpEntity(ContentTypes.`application/json`, changeJson)
-          Post("/users/change_password", changeEntity) ~> routes ~> check {
+          Post("/api/v1/users/change_password", changeEntity) ~> routes ~> check {
             status shouldBe StatusCodes.BadRequest
           }
         }
