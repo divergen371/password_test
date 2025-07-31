@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVer % Test,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % PekkoVersion % Test,
   "org.scalatest" %% "scalatest" % "3.2.19" % Test,
-  "org.scalatestplus" %% "scalacheck-1-18" % "3.2.19.0" % Test
-
+  "org.scalatestplus" %% "scalacheck-1-18" % "3.2.19.0" % Test,
+  "com.softwaremill.macwire" %% "macros" % "2.6.6" % "provided",
+  "com.softwaremill.macwire" %% "util"   % "2.6.6"
 )
