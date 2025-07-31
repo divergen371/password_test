@@ -19,4 +19,4 @@ trait Module:
   lazy val userService: UserService[IO] = wire[UserServiceImpl]
 
   // --- Interface layer ---
-  lazy val userRoutes = wire[UserRoutesDI]
+  lazy val userRoutes: UserRoutesDI = wire[UserRoutesDI]
