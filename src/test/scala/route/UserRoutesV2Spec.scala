@@ -9,13 +9,15 @@ import org.scalatest.wordspec.AnyWordSpec
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import repo.InMemoryUserRepo
+import service.UserServiceImpl
 
 class UserRoutesV2Spec extends AnyWordSpec with Matchers with ScalaFutures with ScalatestRouteTest {
 
   /** 新しいルートを返す */
   private def newRoute: Route = {
     val repo = InMemoryUserRepo.empty.unsafeRunSync()
-    new UserRoutesDI(repo).routes
+    val service = UserServiceImpl(repo)
+    new UserRoutesDI(service).routes
   }
 
   "UserRoutesDI" should {
@@ -41,7 +43,8 @@ class UserRoutesV2Spec extends AnyWordSpec with Matchers with ScalaFutures with 
 
     "reject duplicate user" in {
       val repo   = InMemoryUserRepo.empty.unsafeRunSync()
-      val routes = new UserRoutesDI(repo).routes
+      val service = UserServiceImpl(repo)
+      val routes = new UserRoutesDI(service).routes
       val userJson = """{"name":"dup","password":"validpass123"}"""
       val entity = HttpEntity(ContentTypes.`application/json`, userJson)
       // first create
@@ -65,7 +68,8 @@ class UserRoutesV2Spec extends AnyWordSpec with Matchers with ScalaFutures with 
 
     "login success" in {
       val repo   = InMemoryUserRepo.empty.unsafeRunSync()
-      val routes = new UserRoutesDI(repo).routes
+      val service = UserServiceImpl(repo)
+      val routes = new UserRoutesDI(service).routes
       val createJson = """{"name":"loginuser","password":"loginpass123"}"""
       val createEntity = HttpEntity(ContentTypes.`application/json`, createJson)
       Post("/api/v2/users/hash", createEntity) ~> routes ~> check { status shouldEqual StatusCodes.Created }

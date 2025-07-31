@@ -61,3 +61,6 @@ final class UserServiceImpl(repo: UserRepo[IO]) extends UserService[IO]:
       _ <- authorizeAdmin(authName, authPw)
       _ <- repo.delete(id)
     yield ()
+
+object UserServiceImpl:
+  def apply(r: repo.UserRepo[IO]): UserServiceImpl = new UserServiceImpl(r)

@@ -5,6 +5,7 @@ import org.apache.pekko.http.scaladsl.server.directives.DebuggingDirectives
 import org.apache.pekko.http.scaladsl.server.directives.LoggingMagnet
 import route.UserRoutesDI
 import repo.InMemoryUserRepo
+import service.UserServiceImpl
 import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.ExecutionContextExecutor
@@ -17,7 +18,8 @@ import scala.io.StdIn
 
   // より詳細なログ設定
   val repo  = InMemoryUserRepo.empty.unsafeRunSync()
-  val routes = new UserRoutesDI(repo).routes
+  val service = UserServiceImpl(repo)
+  val routes = new UserRoutesDI(service).routes
 
   val loggedRoutes = logRequest("Request") {
     logResult("Response") {

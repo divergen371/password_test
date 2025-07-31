@@ -6,6 +6,7 @@ import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import util.PropertySpec
 import repo.InMemoryUserRepo
+import service.UserServiceImpl
 import spray.json.*
 import cats.effect.unsafe.implicits.global
 
@@ -22,7 +23,8 @@ class UserRoutesV2PropSpec
 
   private def newRoutes =
     val repo = InMemoryUserRepo.empty.unsafeRunSync()
-    new UserRoutesDI(repo).routes
+    val service = UserServiceImpl(repo)
+    new UserRoutesDI(service).routes
 
   case class Cred(name: String, password: String, role: Option[String] = None)
   given RootJsonFormat[Cred] = jsonFormat3(Cred.apply)
